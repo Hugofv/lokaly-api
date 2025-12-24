@@ -1,6 +1,6 @@
 {
   "name": "Lokaly API Development",
-  "dockerComposeFile": "../docker/docker-compose.yml",
+  "dockerComposeFile": "docker-compose.yml",
   "service": "public-api",
   "workspaceFolder": "/workspace",
   "shutdownAction": "stopCompose",
@@ -27,7 +27,7 @@
     }
   },
 
-  "forwardPorts": [3000, 3001, 5432, 6379],
+  "forwardPorts": [3000, 3001, 5432, 6380],
   "portsAttributes": {
     "3000": {
       "label": "Public API",
@@ -41,7 +41,7 @@
       "label": "PostgreSQL",
       "onAutoForward": "silent"
     },
-    "6379": {
+    "6380": {
       "label": "Redis",
       "onAutoForward": "silent"
     }
@@ -59,14 +59,6 @@
     "NODE_ENV": "development"
   },
 
-  "features": {
-    "ghcr.io/devcontainers/features/git:1": {},
-    "ghcr.io/devcontainers/features/github-cli:1": {}
-  },
-
-  "mounts": [
-    "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached"
-  ],
 
   "overrideCommand": false
 }
