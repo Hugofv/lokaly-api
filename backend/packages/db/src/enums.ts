@@ -218,3 +218,120 @@ export function isValidProductPriceType(
 ): type is ProductPriceType {
   return Object.values(ProductPriceType).includes(type as ProductPriceType);
 }
+
+/**
+ * User Role Enum
+ */
+export const UserRole = {
+  ADMIN: 'admin',
+  SUPER_ADMIN: 'super_admin',
+} as const;
+
+export type UserRole = (typeof UserRole)[keyof typeof UserRole];
+
+/**
+ * Customer Status Enum
+ */
+export const CustomerStatus = {
+  ACTIVE: 'active',
+  INACTIVE: 'inactive',
+  SUSPENDED: 'suspended',
+  VERIFIED: 'verified',
+  UNVERIFIED: 'unverified',
+} as const;
+
+export type CustomerStatus =
+  (typeof CustomerStatus)[keyof typeof CustomerStatus];
+
+/**
+ * Address Type Enum
+ */
+export const AddressType = {
+  HOME: 'home',
+  WORK: 'work',
+  OTHER: 'other',
+} as const;
+
+export type AddressType = (typeof AddressType)[keyof typeof AddressType];
+
+/**
+ * Courier Status Enum
+ */
+export const CourierStatus = {
+  ACTIVE: 'active',
+  INACTIVE: 'inactive',
+  BUSY: 'busy',
+  OFFLINE: 'offline',
+  SUSPENDED: 'suspended',
+} as const;
+
+export type CourierStatus = (typeof CourierStatus)[keyof typeof CourierStatus];
+
+/**
+ * Vehicle Type Enum
+ */
+export const VehicleType = {
+  BICYCLE: 'bicycle',
+  MOTORCYCLE: 'motorcycle',
+  CAR: 'car',
+  VAN: 'van',
+  WALKING: 'walking',
+} as const;
+
+export type VehicleType = (typeof VehicleType)[keyof typeof VehicleType];
+
+/**
+ * Gender Enum
+ */
+export const Gender = {
+  MALE: 'male',
+  FEMALE: 'female',
+  OTHER: 'other',
+  PREFER_NOT_TO_SAY: 'prefer_not_to_say',
+} as const;
+
+export type Gender = (typeof Gender)[keyof typeof Gender];
+
+/**
+ * Helper function to validate user role
+ */
+export function isValidUserRole(role: string): role is UserRole {
+  return Object.values(UserRole).includes(role as UserRole);
+}
+
+/**
+ * Helper function to validate customer status
+ */
+export function isValidCustomerStatus(
+  status: string
+): status is CustomerStatus {
+  return Object.values(CustomerStatus).includes(status as CustomerStatus);
+}
+
+/**
+ * Helper function to validate address type
+ */
+export function isValidAddressType(type: string): type is AddressType {
+  return Object.values(AddressType).includes(type as AddressType);
+}
+
+/**
+ * Helper function to validate courier status
+ */
+export function isValidCourierStatus(status: string): status is CourierStatus {
+  return Object.values(CourierStatus).includes(status as CourierStatus);
+}
+
+/**
+ * Helper function to validate vehicle type
+ */
+export function isValidVehicleType(type: string): type is VehicleType {
+  return Object.values(VehicleType).includes(type as VehicleType);
+}
+
+/**
+ * Helper function to validate gender
+ */
+export function isValidGender(gender: string): gender is Gender {
+  return Object.values(Gender).includes(gender as Gender);
+}

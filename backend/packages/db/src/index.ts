@@ -16,6 +16,16 @@ import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import * as schema from './schema';
 
 export type {
+  // User management types
+  User,
+  NewUser,
+  Customer,
+  NewCustomer,
+  Address,
+  NewAddress,
+  Courier,
+  NewCourier,
+  // Order types
   Order,
   NewOrder,
   OrderItem,
@@ -53,16 +63,32 @@ export type {
 
 // Export enums for use in domain layer
 export {
+  // User management enums
+  UserRole,
+  CustomerStatus,
+  AddressType,
+  CourierStatus,
+  VehicleType,
+  Gender,
+  // Order enums
   OrderStatus,
   PaymentStatus,
   PaymentMethod,
   InventoryReservationStatus,
   DeliveryAssignmentStatus,
+  // Catalog enums
   UnitType,
   ProductStatus,
   ProductVariantType,
   ProductImageSize,
   ProductPriceType,
+  // Validation functions
+  isValidUserRole,
+  isValidCustomerStatus,
+  isValidAddressType,
+  isValidCourierStatus,
+  isValidVehicleType,
+  isValidGender,
   isValidOrderStatus,
   isValidPaymentStatus,
   isValidInventoryReservationStatus,

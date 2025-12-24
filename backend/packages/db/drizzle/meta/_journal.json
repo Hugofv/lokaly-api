@@ -36,6 +36,13 @@
       "when": 1766537565699,
       "tag": "0004_mature_warbound",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1766539153687,
+      "tag": "0005_married_mantis",
+      "breakpoints": true
     }
   ]
 }
