@@ -1,0 +1,41 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1766536781110,
+      "tag": "0000_famous_dazzler",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1766537233080,
+      "tag": "0001_cute_shinobi_shaw",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1766537397676,
+      "tag": "0002_melted_sue_storm",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1766537433660,
+      "tag": "0003_spooky_shen",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1766537565699,
+      "tag": "0004_mature_warbound",
+      "breakpoints": true
+    }
+  ]
+}

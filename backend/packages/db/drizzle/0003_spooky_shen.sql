@@ -1,0 +1,6 @@
+ALTER TABLE "inventory_reservations" ALTER COLUMN "product_id" SET DATA TYPE bigint;--> statement-breakpoint
+ALTER TABLE "inventory_reservations" ALTER COLUMN "warehouse_id" SET DATA TYPE bigint;--> statement-breakpoint
+ALTER TABLE "inventory_reservations" ADD COLUMN "product_variant_id" bigint;--> statement-breakpoint
+ALTER TABLE "inventory_reservations" ADD CONSTRAINT "inventory_reservations_product_id_products_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "inventory_reservations" ADD CONSTRAINT "inventory_reservations_product_variant_id_product_variants_id_fk" FOREIGN KEY ("product_variant_id") REFERENCES "public"."product_variants"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "inventory_reservations" ADD CONSTRAINT "inventory_reservations_warehouse_id_warehouses_id_fk" FOREIGN KEY ("warehouse_id") REFERENCES "public"."warehouses"("id") ON DELETE set null ON UPDATE no action;
