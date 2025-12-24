@@ -15,14 +15,12 @@ import {
   CouriersService,
   ProductsService,
 } from '@lokaly/domain';
-import {
-  createUsersRoutes,
-  createCustomersRoutes,
-  createAddressesRoutes,
-  createCouriersRoutes,
-  createProductsRoutes,
-} from './controllers';
-import { createAuthGuard, createAuthDerive } from './middleware/elysia-auth';
+import { authPlugin } from './shared/middleware/auth.plugin';
+import { usersController } from './modules/users/controller';
+import { customersController } from './modules/customers/controller';
+import { addressesController } from './modules/customers/addresses/controller';
+import { couriersController } from './modules/couriers/controller';
+import { productsController } from './modules/products/controller';
 
 export function createApp(
   db: DbConnection,
@@ -37,32 +35,17 @@ export function createApp(
   const couriersService = new CouriersService(db, cache);
   const productsService = new ProductsService(db, cache);
 
-  // Auth middleware
-  const authGuard = createAuthGuard(jwtService);
-  const authDerive = createAuthDerive(jwtService);
-
-  // Create route groups
-  const usersRoutes = createUsersRoutes(usersService);
-  const customersRoutes = createCustomersRoutes(
-    customersService,
-    addressesService
-  );
-  const addressesRoutes = createAddressesRoutes(addressesService);
-  const couriersRoutes = createCouriersRoutes(couriersService);
-  const productsRoutes = createProductsRoutes(productsService);
-
   // Build app
   const app = new Elysia()
     .get('/health', () => ({ status: 'ok', service: 'admin-api' }))
     .group('/api/admin', (app) =>
       app
-        .onBeforeHandle(authGuard)
-        .derive(authDerive)
-        .use(usersRoutes)
-        .use(customersRoutes)
-        .use(addressesRoutes)
-        .use(couriersRoutes)
-        .use(productsRoutes)
+        .use(authPlugin(jwtService))
+        .use(usersController(usersService))
+        .use(customersController(customersService, addressesService))
+        .use(addressesController(addressesService))
+        .use(couriersController(couriersService))
+        .use(productsController(productsService))
     );
 
   return app;

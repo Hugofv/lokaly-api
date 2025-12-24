@@ -19,10 +19,7 @@ import { JwtService } from '@lokaly/auth';
 import { OrderService } from '@lokaly/domain';
 import { RedisEventPublisher } from './infra/redis-publisher';
 import { createApp } from './app';
-
-const PORT = 3001;
-const JWT_SECRET =
-  process.env.ADMIN_JWT_SECRET || 'admin-api-secret-key-change-in-production';
+import { appConfig } from './config/app';
 
 // Initialize services
 let jwtService: JwtService;
@@ -35,26 +32,19 @@ let app: Awaited<ReturnType<typeof createApp>>;
  */
 async function init() {
   // Initialize database
-  const dbConnectionString =
-    process.env.DATABASE_URL || 'postgresql://localhost:5432/lokaly';
-  await initDb(dbConnectionString);
+  await initDb(appConfig.databaseUrl);
   const db = getDb();
   await runMigrations(db);
 
   // Initialize JWT service (separate secret from public API)
-  jwtService = new JwtService(JWT_SECRET);
+  jwtService = new JwtService(appConfig.jwtSecret);
 
   // Initialize Redis event publisher
   eventPublisher = new RedisEventPublisher();
-  await eventPublisher.connect(
-    process.env.REDIS_URL || 'redis://localhost:6379'
-  );
+  await eventPublisher.connect(appConfig.redisUrl);
 
   // Initialize cache
-  const cache = getCache(
-    process.env.REDIS_URL || 'redis://localhost:6379',
-    300
-  );
+  const cache = getCache(appConfig.redisUrl, 300);
 
   // Initialize domain services
   orderService = new OrderService(db, eventPublisher);
@@ -62,12 +52,14 @@ async function init() {
   // Initialize Elysia app
   app = createApp(db, cache, eventPublisher, jwtService);
 
-  console.log(`[Admin API] Initialized on port ${PORT}`);
+  console.log(`[Admin API] Initialized on port ${appConfig.port}`);
 
   // Start Elysia server
-  app.listen(PORT);
+  app.listen(appConfig.port);
 
-  console.log(`🔐 Admin API server running on http://localhost:${PORT}`);
+  console.log(
+    `🔐 Admin API server running on http://localhost:${appConfig.port}`
+  );
 }
 
 /**

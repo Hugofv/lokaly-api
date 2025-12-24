@@ -1,12 +1,13 @@
 /**
- * Elysia Auth Middleware
- * Validates JWT tokens and ensures admin role
+ * Auth Plugin
+ * Elysia plugin for authentication and authorization
  */
 
+import { Elysia } from 'elysia';
 import { JwtService, RBAC } from '@lokaly/auth';
 import type { Context } from 'elysia';
 
-export function createAuthGuard(jwtService: JwtService) {
+function createAuthGuard(jwtService: JwtService) {
   return async ({ request, set }: Context) => {
     const authHeader = request.headers.get('Authorization');
     const token = authHeader?.replace('Bearer ', '');
@@ -32,7 +33,7 @@ export function createAuthGuard(jwtService: JwtService) {
   };
 }
 
-export function createAuthDerive(jwtService: JwtService) {
+function createAuthDerive(jwtService: JwtService) {
   return async ({ request }: Context) => {
     const authHeader = request.headers.get('Authorization');
     const token = authHeader?.replace('Bearer ', '');
@@ -56,3 +57,8 @@ export function createAuthDerive(jwtService: JwtService) {
     };
   };
 }
+
+export const authPlugin = (jwtService: JwtService) =>
+  new Elysia({ name: 'auth' })
+    .derive(createAuthDerive(jwtService))
+    .onBeforeHandle(createAuthGuard(jwtService));
