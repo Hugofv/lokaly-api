@@ -48,7 +48,15 @@ export const customersController = (
           );
         }
       },
-      customerValidators.list
+      {
+        ...customerValidators.list,
+        detail: {
+          tags: ['Customers'],
+          summary: 'List customers',
+          description: 'Get paginated list of customers',
+          security: [{ bearerAuth: [] }],
+        },
+      }
     )
     .get(
       '/search',
@@ -66,7 +74,15 @@ export const customersController = (
           );
         }
       },
-      customerValidators.search
+      {
+        ...customerValidators.search,
+        detail: {
+          tags: ['Customers'],
+          summary: 'Search customers',
+          description: 'Search customers by query string',
+          security: [{ bearerAuth: [] }],
+        },
+      }
     )
     .get(
       '/:id',
@@ -84,7 +100,15 @@ export const customersController = (
           );
         }
       },
-      customerValidators.byId
+      {
+        ...customerValidators.byId,
+        detail: {
+          tags: ['Customers'],
+          summary: 'Get customer by ID',
+          description: 'Get customer details by ID',
+          security: [{ bearerAuth: [] }],
+        },
+      }
     )
     .post(
       '/',
@@ -99,7 +123,15 @@ export const customersController = (
           );
         }
       },
-      customerValidators.create
+      {
+        ...customerValidators.create,
+        detail: {
+          tags: ['Customers'],
+          summary: 'Create customer',
+          description: 'Create a new customer',
+          security: [{ bearerAuth: [] }],
+        },
+      }
     )
     .patch(
       '/:id',
@@ -117,7 +149,15 @@ export const customersController = (
           );
         }
       },
-      customerValidators.update
+      {
+        ...customerValidators.update,
+        detail: {
+          tags: ['Customers'],
+          summary: 'Update customer',
+          description: 'Update customer information',
+          security: [{ bearerAuth: [] }],
+        },
+      }
     )
     .delete(
       '/:id',
@@ -135,7 +175,15 @@ export const customersController = (
           );
         }
       },
-      customerValidators.delete
+      {
+        ...customerValidators.delete,
+        detail: {
+          tags: ['Customers'],
+          summary: 'Delete customer',
+          description: 'Delete a customer (soft delete)',
+          security: [{ bearerAuth: [] }],
+        },
+      }
     )
     // Customer addresses
     .get(
@@ -151,7 +199,15 @@ export const customersController = (
           );
         }
       },
-      addressValidators.list
+      {
+        ...addressValidators.list,
+        detail: {
+          tags: ['Customers'],
+          summary: 'List customer addresses',
+          description: 'Get all addresses for a customer',
+          security: [{ bearerAuth: [] }],
+        },
+      }
     )
     .post(
       '/:id/addresses',
@@ -182,5 +238,13 @@ export const customersController = (
           );
         }
       },
-      addressValidators.create
+      {
+        ...addressValidators.create,
+        detail: {
+          tags: ['Customers'],
+          summary: 'Create customer address',
+          description: 'Create a new address for a customer',
+          security: [{ bearerAuth: [] }],
+        },
+      }
     );

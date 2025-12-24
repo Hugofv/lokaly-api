@@ -13,7 +13,7 @@
  * - Built with Elysia framework
  */
 
-import { initDb, getDb, runMigrations } from '@lokaly/db';
+import { initDb, getDb } from '@lokaly/db';
 import { getCache } from '@lokaly/cache';
 import { JwtService } from '@lokaly/auth';
 import { OrderService } from '@lokaly/domain';
@@ -34,7 +34,7 @@ async function init() {
   // Initialize database
   await initDb(appConfig.databaseUrl);
   const db = getDb();
-  await runMigrations(db);
+  // Note: Migrations should be run manually or via CI/CD, not automatically on startup
 
   // Initialize JWT service (separate secret from public API)
   jwtService = new JwtService(appConfig.jwtSecret);

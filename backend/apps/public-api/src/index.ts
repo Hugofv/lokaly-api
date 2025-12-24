@@ -8,7 +8,7 @@
  * - Events published via RedisEventPublisher
  */
 
-import { initDb, getDb, runMigrations } from '@lokaly/db';
+import { initDb, getDb } from '@lokaly/db';
 import { JwtService } from '@lokaly/auth';
 import { RedisEventPublisher } from './infra/redis-publisher';
 import { createApp } from './app';
@@ -21,7 +21,7 @@ async function init() {
   // Initialize database
   await initDb(appConfig.databaseUrl);
   const db = getDb();
-  await runMigrations(db);
+  // Note: Migrations should be run manually or via CI/CD, not automatically on startup
 
   // Initialize JWT service
   jwtService = new JwtService(appConfig.jwtSecret);
@@ -37,7 +37,9 @@ async function init() {
 
   app.listen(appConfig.port);
 
-  console.log(`🚀 Public API server running on http://localhost:${appConfig.port}`);
+  console.log(
+    `🚀 Public API server running on http://localhost:${appConfig.port}`
+  );
 }
 
 await init();

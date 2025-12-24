@@ -47,7 +47,45 @@ export const usersController = (usersService: UsersService) =>
           );
         }
       },
-      userValidators.list
+      {
+        ...userValidators.list,
+        detail: {
+          tags: ['Users'],
+          summary: 'List users',
+          description: 'Get paginated list of users with optional filters',
+          security: [{ bearerAuth: [] }],
+          responses: {
+            200: {
+              description: 'List of users',
+              content: {
+                'application/json': {
+                  example: {
+                    data: [
+                      {
+                        id: 1,
+                        email: 'admin@lokaly.com',
+                        role: 'super_admin',
+                        firstName: 'Super',
+                        lastName: 'Admin',
+                        isActive: true,
+                      },
+                    ],
+                    pagination: {
+                      total: 10,
+                      limit: 50,
+                      offset: 0,
+                      hasMore: false,
+                    },
+                  },
+                },
+              },
+            },
+            401: {
+              description: 'Unauthorized',
+            },
+          },
+        },
+      }
     )
     .get(
       '/search',
@@ -65,7 +103,19 @@ export const usersController = (usersService: UsersService) =>
           );
         }
       },
-      userValidators.search
+      {
+        ...userValidators.search,
+        detail: {
+          tags: ['Users'],
+          summary: 'Search user by email',
+          description: 'Find a user by email address',
+          security: [{ bearerAuth: [] }],
+          responses: {
+            200: { description: 'User found' },
+            404: { description: 'User not found' },
+          },
+        },
+      }
     )
     .get(
       '/:id',
@@ -83,7 +133,19 @@ export const usersController = (usersService: UsersService) =>
           );
         }
       },
-      userValidators.byId
+      {
+        ...userValidators.byId,
+        detail: {
+          tags: ['Users'],
+          summary: 'Get user by ID',
+          description: 'Get user details by ID',
+          security: [{ bearerAuth: [] }],
+          responses: {
+            200: { description: 'User found' },
+            404: { description: 'User not found' },
+          },
+        },
+      }
     )
     .post(
       '/',
@@ -98,7 +160,19 @@ export const usersController = (usersService: UsersService) =>
           );
         }
       },
-      userValidators.create
+      {
+        ...userValidators.create,
+        detail: {
+          tags: ['Users'],
+          summary: 'Create user',
+          description: 'Create a new admin user',
+          security: [{ bearerAuth: [] }],
+          responses: {
+            201: { description: 'User created successfully' },
+            400: { description: 'Validation error' },
+          },
+        },
+      }
     )
     .patch(
       '/:id',
@@ -116,7 +190,20 @@ export const usersController = (usersService: UsersService) =>
           );
         }
       },
-      userValidators.update
+      {
+        ...userValidators.update,
+        detail: {
+          tags: ['Users'],
+          summary: 'Update user',
+          description: 'Update user information',
+          security: [{ bearerAuth: [] }],
+          responses: {
+            200: { description: 'User updated successfully' },
+            404: { description: 'User not found' },
+            400: { description: 'Validation error' },
+          },
+        },
+      }
     )
     .delete(
       '/:id',
@@ -134,5 +221,17 @@ export const usersController = (usersService: UsersService) =>
           );
         }
       },
-      userValidators.delete
+      {
+        ...userValidators.delete,
+        detail: {
+          tags: ['Users'],
+          summary: 'Delete user',
+          description: 'Delete a user (soft delete)',
+          security: [{ bearerAuth: [] }],
+          responses: {
+            200: { description: 'User deleted successfully' },
+            404: { description: 'User not found' },
+          },
+        },
+      }
     );

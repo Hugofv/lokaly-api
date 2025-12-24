@@ -27,6 +27,8 @@ export const ordersValidators = {
       discountAmount: t.Optional(t.Numeric()),
       paymentMethod: t.Optional(t.String()),
       notes: t.Optional(t.String()),
+      customerName: t.Optional(t.String()),
+      customerPhone: t.Optional(t.String()),
     }),
   },
   getById: {

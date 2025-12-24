@@ -13,7 +13,9 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:seed": "bun run src/seed.ts"
+    "db:seed": "bun run src/seed.ts",
+    "db:fix": "bun run scripts/fix-migration-errors.ts",
+    "db:fix-delivery": "bun run scripts/fix-delivery-assignments.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

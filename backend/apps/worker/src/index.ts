@@ -1,8 +1,8 @@
 /**
  * Worker Service
- * 
+ *
  * Background job processor and async event handler.
- * 
+ *
  * Architecture:
  * - Consumes jobs/events from Redis
  * - Handles async tasks:
@@ -14,13 +14,17 @@
  * - Retry logic with exponential backoff
  */
 
-import { initDb, getDb, runMigrations } from "@lokaly/db";
-import type { DomainEvent } from "@lokaly/events";
-import { OrderService, InventoryService, DeliveryService } from "@lokaly/domain";
-import { retry } from "@lokaly/utils";
-import { RedisEventConsumer } from "./infra/redis-consumer";
-import { RedisEventPublisher } from "./infra/redis-publisher";
-import { processEvent } from "./handlers/event-handler";
+import { initDb, getDb } from '@lokaly/db';
+import type { DomainEvent } from '@lokaly/events';
+import {
+  OrderService,
+  InventoryService,
+  DeliveryService,
+} from '@lokaly/domain';
+import { retry } from '@lokaly/utils';
+import { RedisEventConsumer } from './infra/redis-consumer';
+import { RedisEventPublisher } from './infra/redis-publisher';
+import { processEvent } from './handlers/event-handler';
 
 // Initialize services
 let orderService: OrderService;
@@ -33,14 +37,17 @@ let eventPublisher: RedisEventPublisher;
  */
 async function init() {
   // Initialize database
-  const dbConnectionString = process.env.DATABASE_URL || "postgresql://localhost:5432/lokaly";
+  const dbConnectionString =
+    process.env.DATABASE_URL || 'postgresql://localhost:5432/lokaly';
   await initDb(dbConnectionString);
   const db = getDb();
-  await runMigrations(db);
+  // Note: Migrations should be run manually or via CI/CD, not automatically on startup
 
   // Initialize Redis event publisher (for emitting new events)
   eventPublisher = new RedisEventPublisher();
-  await eventPublisher.connect(process.env.REDIS_URL || "redis://localhost:6379");
+  await eventPublisher.connect(
+    process.env.REDIS_URL || 'redis://localhost:6379'
+  );
 
   // Initialize domain services
   orderService = new OrderService(db, eventPublisher);
@@ -55,11 +62,18 @@ async function init() {
  */
 async function handleEvent(event: DomainEvent): Promise<void> {
   try {
-    console.log(`[Worker] Processing event: ${event.type} (${event.metadata.eventId})`);
+    console.log(
+      `[Worker] Processing event: ${event.type} (${event.metadata.eventId})`
+    );
 
     // Process event with retry logic
     await retry(
-      () => processEvent(event, { orderService, inventoryService, deliveryService }),
+      () =>
+        processEvent(event, {
+          orderService,
+          inventoryService,
+          deliveryService,
+        }),
       {
         maxAttempts: 3,
         initialDelay: 1000,
@@ -83,11 +97,10 @@ await init();
 
 // Initialize Redis consumer
 const consumer = new RedisEventConsumer();
-await consumer.connect(process.env.REDIS_URL || "redis://localhost:6379");
+await consumer.connect(process.env.REDIS_URL || 'redis://localhost:6379');
 
 // Start consuming events
-console.log("[Worker] Starting event consumption...");
+console.log('[Worker] Starting event consumption...');
 await consumer.consume(handleEvent);
 
-console.log("🔄 Worker service running");
-
+console.log('🔄 Worker service running');

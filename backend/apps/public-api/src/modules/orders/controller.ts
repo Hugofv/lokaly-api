@@ -13,7 +13,13 @@ export const ordersController = (orderService: OrderService) =>
     // Create order (requires auth)
     .post(
       '/',
-      async ({ body, auth }) => {
+      async ({
+        body,
+        auth,
+      }: {
+        body: any;
+        auth?: { userId: string; role: string; email?: string };
+      }) => {
         if (!auth || (auth.role !== 'customer' && auth.role !== 'courier')) {
           return errorResponse('Unauthorized', 401);
         }
@@ -44,12 +50,47 @@ export const ordersController = (orderService: OrderService) =>
           );
         }
       },
-      ordersValidators.create
+      {
+        ...ordersValidators.create,
+        detail: {
+          tags: ['Orders'],
+          summary: 'Create order',
+          description: 'Create a new order (requires authentication)',
+          security: [{ bearerAuth: [] }],
+          responses: {
+            201: {
+              description: 'Order created successfully',
+              content: {
+                'application/json': {
+                  example: {
+                    id: 1,
+                    customerId: 1,
+                    status: 'pending',
+                    totalAmount: 100.0,
+                  },
+                },
+              },
+            },
+            401: {
+              description: 'Unauthorized - authentication required',
+            },
+            400: {
+              description: 'Validation error',
+            },
+          },
+        },
+      }
     )
     // Get order by id (requires auth, customer can only see own orders)
     .get(
       '/:id',
-      async ({ params, auth }) => {
+      async ({
+        params,
+        auth,
+      }: {
+        params: { id: number };
+        auth?: { userId: string; role: string; email?: string };
+      }) => {
         if (!auth || (auth.role !== 'customer' && auth.role !== 'courier')) {
           return errorResponse('Unauthorized', 401);
         }
@@ -62,7 +103,10 @@ export const ordersController = (orderService: OrderService) =>
             return errorResponse('Order not found', 404);
           }
 
-          if (auth.role === 'customer' && order.customerId !== Number(auth.userId)) {
+          if (
+            auth.role === 'customer' &&
+            order.customerId !== Number(auth.userId)
+          ) {
             return errorResponse('Forbidden', 403);
           }
 
@@ -74,5 +118,29 @@ export const ordersController = (orderService: OrderService) =>
           );
         }
       },
-      ordersValidators.getById
+      {
+        ...ordersValidators.getById,
+        detail: {
+          tags: ['Orders'],
+          summary: 'Get order by ID',
+          description:
+            'Get order details by ID (customers can only see their own orders)',
+          security: [{ bearerAuth: [] }],
+          responses: {
+            200: {
+              description: 'Order details',
+            },
+            401: {
+              description: 'Unauthorized',
+            },
+            403: {
+              description:
+                'Forbidden - customer trying to access another customer order',
+            },
+            404: {
+              description: 'Order not found',
+            },
+          },
+        },
+      }
     );

@@ -57,7 +57,15 @@ export const couriersController = (couriersService: CouriersService) =>
           );
         }
       },
-      courierValidators.list
+      {
+        ...courierValidators.list,
+        detail: {
+          tags: ['Couriers'],
+          summary: 'List couriers',
+          description: 'Get paginated list of couriers',
+          security: [{ bearerAuth: [] }],
+        },
+      }
     )
     .get(
       '/available',
@@ -76,7 +84,15 @@ export const couriersController = (couriersService: CouriersService) =>
           );
         }
       },
-      courierValidators.available
+      {
+        ...courierValidators.available,
+        detail: {
+          tags: ['Couriers'],
+          summary: 'List available couriers',
+          description: 'Get list of available couriers',
+          security: [{ bearerAuth: [] }],
+        },
+      }
     )
     .get(
       '/search',
@@ -94,7 +110,15 @@ export const couriersController = (couriersService: CouriersService) =>
           );
         }
       },
-      courierValidators.search
+      {
+        ...courierValidators.search,
+        detail: {
+          tags: ['Couriers'],
+          summary: 'Search couriers',
+          description: 'Search couriers by query string',
+          security: [{ bearerAuth: [] }],
+        },
+      }
     )
     .get(
       '/:id',
@@ -112,7 +136,15 @@ export const couriersController = (couriersService: CouriersService) =>
           );
         }
       },
-      courierValidators.byId
+      {
+        ...courierValidators.byId,
+        detail: {
+          tags: ['Couriers'],
+          summary: 'Get courier by ID',
+          description: 'Get courier details by ID',
+          security: [{ bearerAuth: [] }],
+        },
+      }
     )
     .post(
       '/',
@@ -127,7 +159,15 @@ export const couriersController = (couriersService: CouriersService) =>
           );
         }
       },
-      courierValidators.create
+      {
+        ...courierValidators.create,
+        detail: {
+          tags: ['Couriers'],
+          summary: 'Create courier',
+          description: 'Create a new courier',
+          security: [{ bearerAuth: [] }],
+        },
+      }
     )
     .patch(
       '/:id',
@@ -145,7 +185,15 @@ export const couriersController = (couriersService: CouriersService) =>
           );
         }
       },
-      courierValidators.update
+      {
+        ...courierValidators.update,
+        detail: {
+          tags: ['Couriers'],
+          summary: 'Update courier',
+          description: 'Update courier information',
+          security: [{ bearerAuth: [] }],
+        },
+      }
     )
     .delete(
       '/:id',
@@ -163,7 +211,15 @@ export const couriersController = (couriersService: CouriersService) =>
           );
         }
       },
-      courierValidators.delete
+      {
+        ...courierValidators.delete,
+        detail: {
+          tags: ['Couriers'],
+          summary: 'Delete courier',
+          description: 'Delete a courier (soft delete)',
+          security: [{ bearerAuth: [] }],
+        },
+      }
     )
     .patch(
       '/:id/location',
@@ -185,7 +241,15 @@ export const couriersController = (couriersService: CouriersService) =>
           );
         }
       },
-      courierValidators.updateLocation
+      {
+        ...courierValidators.updateLocation,
+        detail: {
+          tags: ['Couriers'],
+          summary: 'Update courier location',
+          description: 'Update courier current location',
+          security: [{ bearerAuth: [] }],
+        },
+      }
     )
     .patch(
       '/:id/availability',
@@ -206,5 +270,13 @@ export const couriersController = (couriersService: CouriersService) =>
           );
         }
       },
-      courierValidators.setAvailability
+      {
+        ...courierValidators.setAvailability,
+        detail: {
+          tags: ['Couriers'],
+          summary: 'Set courier availability',
+          description: 'Update courier availability status',
+          security: [{ bearerAuth: [] }],
+        },
+      }
     );

@@ -26,7 +26,15 @@ export const addressesController = (addressesService: AddressesService) =>
           );
         }
       },
-      { params: numericId }
+      {
+        params: numericId,
+        detail: {
+          tags: ['Addresses'],
+          summary: 'Get address by ID',
+          description: 'Get address details by ID',
+          security: [{ bearerAuth: [] }],
+        },
+      }
     )
     .patch(
       '/:id',
@@ -64,6 +72,12 @@ export const addressesController = (addressesService: AddressesService) =>
             deliveryInstructions: t.String(),
           })
         ),
+        detail: {
+          tags: ['Addresses'],
+          summary: 'Update address',
+          description: 'Update address information',
+          security: [{ bearerAuth: [] }],
+        },
       }
     )
     .delete(
@@ -82,5 +96,13 @@ export const addressesController = (addressesService: AddressesService) =>
           );
         }
       },
-      { params: numericId }
+      {
+        params: numericId,
+        detail: {
+          tags: ['Addresses'],
+          summary: 'Delete address',
+          description: 'Delete an address (soft delete)',
+          security: [{ bearerAuth: [] }],
+        },
+      }
     );

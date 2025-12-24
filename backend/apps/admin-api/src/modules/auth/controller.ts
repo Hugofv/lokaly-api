@@ -79,7 +79,41 @@ export const authController = (
           );
         }
       },
-      authValidators.login
+      {
+        ...authValidators.login,
+        detail: {
+          tags: ['Auth'],
+          summary: 'Admin login',
+          description:
+            'Authenticate admin user and receive access/refresh tokens',
+          responses: {
+            200: {
+              description: 'Login successful',
+              content: {
+                'application/json': {
+                  example: {
+                    accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+                    refreshToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+                    user: {
+                      id: 1,
+                      email: 'admin@lokaly.com',
+                      role: 'super_admin',
+                      firstName: 'Super',
+                      lastName: 'Admin',
+                    },
+                  },
+                },
+              },
+            },
+            401: {
+              description: 'Invalid credentials',
+            },
+            403: {
+              description: 'User is inactive or not an admin',
+            },
+          },
+        },
+      }
     )
     .post(
       '/refresh',
@@ -139,5 +173,32 @@ export const authController = (
           );
         }
       },
-      authValidators.refresh
+      {
+        ...authValidators.refresh,
+        detail: {
+          tags: ['Auth'],
+          summary: 'Refresh access token',
+          description:
+            'Get new access and refresh tokens using a valid refresh token',
+          responses: {
+            200: {
+              description: 'Tokens refreshed successfully',
+              content: {
+                'application/json': {
+                  example: {
+                    accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+                    refreshToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+                  },
+                },
+              },
+            },
+            401: {
+              description: 'Invalid or expired refresh token',
+            },
+            403: {
+              description: 'User is inactive or not an admin',
+            },
+          },
+        },
+      }
     );

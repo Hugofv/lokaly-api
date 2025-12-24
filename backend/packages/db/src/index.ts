@@ -239,11 +239,33 @@ export async function runMigrations(db: DbConnection): Promise<void> {
     const migrationsFolder = new URL('./../drizzle', import.meta.url).pathname;
 
     // Run migrations from the drizzle folder
+    // Drizzle will automatically skip migrations that have already been applied
     await migrate(migrationDb, { migrationsFolder });
     console.log('[DB] Migrations completed successfully');
-  } catch (error) {
-    console.error('[DB] Migration error:', error);
-    throw error;
+  } catch (error: any) {
+    // Check if error is about existing sequence/relation
+    if (error?.code === '42P07' || error?.message?.includes('already exists')) {
+      console.error('[DB] ❌ Migration error: Object already exists');
+      console.error('[DB] Error details:', error.message);
+      console.error('');
+      console.error('[DB] 🔧 Soluções:');
+      console.error(
+        '[DB]   1. Execute: cd backend/packages/db && bun run db:fix'
+      );
+      console.error(
+        '[DB]   2. Ou use: bun run db:push (apenas desenvolvimento)'
+      );
+      console.error('[DB]   3. Ou limpe o banco e recrie as migrações');
+      console.error('');
+      // Em desenvolvimento, podemos continuar, mas em produção deve falhar
+      if (process.env.NODE_ENV === 'production') {
+        throw error;
+      }
+      console.warn('[DB] ⚠️  Continuando em modo desenvolvimento...');
+    } else {
+      console.error('[DB] Migration error:', error);
+      throw error;
+    }
   } finally {
     await migrationSql.end();
   }

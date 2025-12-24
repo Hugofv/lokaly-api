@@ -63,7 +63,15 @@ export const productsController = (productsService: ProductsService) =>
           );
         }
       },
-      productValidators.list
+      {
+        ...productValidators.list,
+        detail: {
+          tags: ['Products'],
+          summary: 'List products',
+          description: 'Get paginated list of products',
+          security: [{ bearerAuth: [] }],
+        },
+      }
     )
     .get(
       '/search',
@@ -81,7 +89,15 @@ export const productsController = (productsService: ProductsService) =>
           );
         }
       },
-      productValidators.search
+      {
+        ...productValidators.search,
+        detail: {
+          tags: ['Products'],
+          summary: 'Search products',
+          description: 'Search products by query string',
+          security: [{ bearerAuth: [] }],
+        },
+      }
     )
     .get(
       '/by-sku',
@@ -99,7 +115,15 @@ export const productsController = (productsService: ProductsService) =>
           );
         }
       },
-      productValidators.bySku
+      {
+        ...productValidators.bySku,
+        detail: {
+          tags: ['Products'],
+          summary: 'Get product by SKU',
+          description: 'Get product details by SKU',
+          security: [{ bearerAuth: [] }],
+        },
+      }
     )
     .get(
       '/:id',
@@ -117,7 +141,15 @@ export const productsController = (productsService: ProductsService) =>
           );
         }
       },
-      productValidators.byId
+      {
+        ...productValidators.byId,
+        detail: {
+          tags: ['Products'],
+          summary: 'Get product by ID',
+          description: 'Get product details by ID',
+          security: [{ bearerAuth: [] }],
+        },
+      }
     )
     .post(
       '/',
@@ -132,7 +164,15 @@ export const productsController = (productsService: ProductsService) =>
           );
         }
       },
-      productValidators.create
+      {
+        ...productValidators.create,
+        detail: {
+          tags: ['Products'],
+          summary: 'Create product',
+          description: 'Create a new product',
+          security: [{ bearerAuth: [] }],
+        },
+      }
     )
     .patch(
       '/:id',
@@ -161,7 +201,15 @@ export const productsController = (productsService: ProductsService) =>
           );
         }
       },
-      productValidators.update
+      {
+        ...productValidators.update,
+        detail: {
+          tags: ['Products'],
+          summary: 'Update product',
+          description: 'Update product information',
+          security: [{ bearerAuth: [] }],
+        },
+      }
     )
     .delete(
       '/:id',
@@ -179,5 +227,13 @@ export const productsController = (productsService: ProductsService) =>
           );
         }
       },
-      productValidators.delete
+      {
+        ...productValidators.delete,
+        detail: {
+          tags: ['Products'],
+          summary: 'Delete product',
+          description: 'Delete a product (soft delete)',
+          security: [{ bearerAuth: [] }],
+        },
+      }
     );

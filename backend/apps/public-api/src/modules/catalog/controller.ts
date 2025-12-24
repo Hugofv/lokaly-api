@@ -43,7 +43,33 @@ export const catalogController = (
           );
         }
       },
-      catalogValidators.listDepartments
+      {
+        ...catalogValidators.listDepartments,
+        detail: {
+          tags: ['Catalog'],
+          summary: 'List departments',
+          description: 'Get list of all product departments',
+          responses: {
+            200: {
+              description: 'List of departments',
+              content: {
+                'application/json': {
+                  example: {
+                    data: [
+                      {
+                        id: 1,
+                        code: 'ALIM',
+                        name: 'Alimentos',
+                        description: 'Alimentos em geral',
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+      }
     )
     // Categories by department (optional departmentId, otherwise 400)
     .get(
@@ -68,7 +94,38 @@ export const catalogController = (
           );
         }
       },
-      catalogValidators.listCategories
+      {
+        ...catalogValidators.listCategories,
+        detail: {
+          tags: ['Catalog'],
+          summary: 'List categories by department',
+          description:
+            'Get all categories for a specific department. Requires departmentId query parameter.',
+          responses: {
+            200: {
+              description: 'List of categories',
+              content: {
+                'application/json': {
+                  example: {
+                    data: [
+                      {
+                        id: 1,
+                        departmentId: 1,
+                        code: 'CEREAIS',
+                        name: 'Cereais e Grãos',
+                        description: 'Arroz, feijão, massas e cereais',
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+            400: {
+              description: 'departmentId query parameter is required',
+            },
+          },
+        },
+      }
     )
     // Subcategories by category (requires categoryId)
     .get(
@@ -90,7 +147,36 @@ export const catalogController = (
           );
         }
       },
-      catalogValidators.listSubcategories
+      {
+        ...catalogValidators.listSubcategories,
+        detail: {
+          tags: ['Catalog'],
+          summary: 'List subcategories by category',
+          description:
+            'Get all subcategories for a specific category. Requires categoryId query parameter.',
+          responses: {
+            200: {
+              description: 'List of subcategories',
+              content: {
+                'application/json': {
+                  example: {
+                    data: [
+                      {
+                        id: 1,
+                        categoryId: 1,
+                        code: 'ARROZ',
+                        name: 'Arroz',
+                        description: 'Arroz branco, integral, parboilizado',
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+            400: { description: 'categoryId query parameter is required' },
+          },
+        },
+      }
     )
     // Brands
     .get(
@@ -109,7 +195,34 @@ export const catalogController = (
           );
         }
       },
-      catalogValidators.listBrands
+      {
+        ...catalogValidators.listBrands,
+        detail: {
+          tags: ['Catalog'],
+          summary: 'List brands',
+          description: 'Get paginated list of all product brands',
+          responses: {
+            200: {
+              description: 'List of brands',
+              content: {
+                'application/json': {
+                  example: {
+                    data: [
+                      {
+                        id: 1,
+                        name: 'Coca-Cola',
+                        logoUrl: 'https://example.com/logo.png',
+                        website: 'https://coca-cola.com',
+                        isActive: true,
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+      }
     )
     // Products list
     .get(
@@ -159,7 +272,42 @@ export const catalogController = (
           );
         }
       },
-      catalogValidators.listProducts
+      {
+        ...catalogValidators.listProducts,
+        detail: {
+          tags: ['Catalog'],
+          summary: 'List products',
+          description:
+            'Get paginated list of products with optional filters. Supports filtering by subcategory, brand, featured status, and more.',
+          responses: {
+            200: {
+              description: 'List of products with pagination',
+              content: {
+                'application/json': {
+                  example: {
+                    data: [
+                      {
+                        id: 1,
+                        name: 'Arroz Tipo 1',
+                        sku: 'ARROZ-001',
+                        basePrice: '10.50',
+                        status: 'active',
+                        isFeatured: true,
+                      },
+                    ],
+                    pagination: {
+                      total: 100,
+                      limit: 50,
+                      offset: 0,
+                      hasMore: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      }
     )
     // Product by id
     .get(
@@ -178,7 +326,34 @@ export const catalogController = (
           );
         }
       },
-      catalogValidators.getProductById
+      {
+        ...catalogValidators.getProductById,
+        detail: {
+          tags: ['Catalog'],
+          summary: 'Get product by ID',
+          description:
+            'Get detailed product information including images, variants, prices, and stock by product ID',
+          responses: {
+            200: {
+              description: 'Product found',
+              content: {
+                'application/json': {
+                  example: {
+                    id: 1,
+                    name: 'Arroz Tipo 1',
+                    sku: 'ARROZ-001',
+                    basePrice: '10.50',
+                    description: 'Arroz branco tipo 1',
+                    images: [],
+                    variants: [],
+                  },
+                },
+              },
+            },
+            404: { description: 'Product not found' },
+          },
+        },
+      }
     )
     // Product by sku
     .get(
@@ -197,7 +372,31 @@ export const catalogController = (
           );
         }
       },
-      catalogValidators.getProductBySku
+      {
+        ...catalogValidators.getProductBySku,
+        detail: {
+          tags: ['Catalog'],
+          summary: 'Get product by SKU',
+          description:
+            'Get product information by SKU (Stock Keeping Unit) code. SKU is a unique identifier for products.',
+          responses: {
+            200: {
+              description: 'Product found',
+              content: {
+                'application/json': {
+                  example: {
+                    id: 1,
+                    name: 'Arroz Tipo 1',
+                    sku: 'ARROZ-001',
+                    basePrice: '10.50',
+                  },
+                },
+              },
+            },
+            404: { description: 'Product not found' },
+          },
+        },
+      }
     )
     // Product search
     .get(
@@ -216,5 +415,32 @@ export const catalogController = (
           );
         }
       },
-      catalogValidators.searchProducts
+      {
+        ...catalogValidators.searchProducts,
+        detail: {
+          tags: ['Catalog'],
+          summary: 'Search products',
+          description:
+            'Search products by name, description, or SKU. Returns matching products ordered by relevance.',
+          responses: {
+            200: {
+              description: 'Search results',
+              content: {
+                'application/json': {
+                  example: {
+                    data: [
+                      {
+                        id: 1,
+                        name: 'Arroz Tipo 1',
+                        sku: 'ARROZ-001',
+                        basePrice: '10.50',
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+      }
     );

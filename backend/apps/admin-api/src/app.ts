@@ -4,6 +4,7 @@
  */
 
 import { Elysia } from 'elysia';
+import { swagger } from '@elysiajs/swagger';
 import type { DbConnection } from '@lokaly/db';
 import type { CacheService } from '@lokaly/cache';
 import type { EventPublisher } from '@lokaly/domain';
@@ -38,7 +39,53 @@ export function createApp(
 
   // Build app
   const app = new Elysia()
-    .get('/health', () => ({ status: 'ok', service: 'admin-api' }))
+    .use(
+      swagger({
+        documentation: {
+          info: {
+            title: 'Lokaly Admin API',
+            version: '1.0.0',
+            description:
+              'Admin API for managing users, customers, couriers, products, and orders.',
+            contact: {
+              name: 'Lokaly Support',
+              email: 'support@lokaly.com',
+            },
+          },
+          tags: [
+            { name: 'Health', description: 'Health check endpoints' },
+            { name: 'Auth', description: 'Authentication endpoints' },
+            { name: 'Users', description: 'User management endpoints' },
+            { name: 'Customers', description: 'Customer management endpoints' },
+            { name: 'Addresses', description: 'Address management endpoints' },
+            { name: 'Couriers', description: 'Courier management endpoints' },
+            { name: 'Products', description: 'Product management endpoints' },
+          ],
+          components: {
+            securitySchemes: {
+              bearerAuth: {
+                type: 'http',
+                scheme: 'bearer',
+                bearerFormat: 'JWT',
+                description: 'JWT token obtained from /api/admin/auth/login',
+              },
+            },
+          },
+        },
+        // Group operations by path prefix
+        swaggerOptions: {
+          tagsSorter: 'alpha',
+          operationsSorter: 'alpha',
+        },
+      })
+    )
+    .get('/health', () => ({ status: 'ok', service: 'admin-api' }), {
+      detail: {
+        tags: ['Health'],
+        summary: 'Health check',
+        description: 'Returns the health status of the API',
+      },
+    })
     // Public admin auth endpoints (no auth plugin - login/refresh)
     .group('/api/admin/auth', (app) =>
       app.use(authController(usersService, jwtService))
