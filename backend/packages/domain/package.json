@@ -1,0 +1,17 @@
+{
+  "name": "@lokaly/domain",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./order": "./src/order/index.ts",
+    "./inventory": "./src/inventory/index.ts",
+    "./delivery": "./src/delivery/index.ts"
+  },
+  "dependencies": {
+    "@lokaly/events": "workspace:*",
+    "@lokaly/db": "workspace:*"
+  }
+}
+

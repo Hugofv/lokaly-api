@@ -1,0 +1,22 @@
+FROM oven/bun:latest
+
+WORKDIR /app
+
+# Copy package files from project root
+COPY package.json bun.lock* ./
+COPY backend/apps/admin-api/package.json ./backend/apps/admin-api/
+COPY backend/packages/*/package.json ./backend/packages/*/
+
+# Install dependencies
+RUN bun install
+
+# Copy source code
+COPY backend ./backend
+COPY package.json ./
+
+# Expose port
+EXPOSE 3001
+
+# Start the application
+CMD ["bun", "--hot", "backend/apps/admin-api/src/index.ts"]
+

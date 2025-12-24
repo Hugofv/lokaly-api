@@ -1,0 +1,19 @@
+FROM oven/bun:latest
+
+WORKDIR /app
+
+# Copy package files from project root
+COPY package.json bun.lock* ./
+COPY backend/apps/worker/package.json ./backend/apps/worker/
+COPY backend/packages/*/package.json ./backend/packages/*/
+
+# Install dependencies
+RUN bun install
+
+# Copy source code
+COPY backend ./backend
+COPY package.json ./
+
+# Start the worker
+CMD ["bun", "--hot", "backend/apps/worker/src/index.ts"]
+

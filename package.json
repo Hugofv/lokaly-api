@@ -1,0 +1,25 @@
+{
+  "name": "lokaly-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "backend/apps/*",
+    "backend/packages/*"
+  ],
+  "scripts": {
+    "dev:public-api": "bun --hot backend/apps/public-api/src/index.ts",
+    "dev:admin-api": "bun --hot backend/apps/admin-api/src/index.ts",
+    "dev:worker": "bun --hot backend/apps/worker/src/index.ts",
+    "dev:all": "bun run dev:public-api & bun run dev:admin-api & bun run dev:worker",
+    "build": "bun build",
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}

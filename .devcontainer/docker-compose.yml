@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: lokaly-postgres-dev
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: lokaly
+      POSTGRES_PASSWORD: lokaly
+      POSTGRES_DB: lokaly
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lokaly"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - lokaly-network
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: lokaly-redis-dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - lokaly-network
+
+  # Development container (main service)
+  public-api:
+    image: oven/bun:latest
+    container_name: lokaly-dev-container
+    command: sleep infinity
+    volumes:
+      - ..:/workspace:cached
+      - /workspace/node_modules
+    working_dir: /workspace
+    environment:
+      DATABASE_URL: postgresql://lokaly:lokaly@postgres:5432/lokaly
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: public-api-secret-key-change-in-production
+      ADMIN_JWT_SECRET: admin-api-secret-key-change-in-production
+      REDIS_CONSUMER_GROUP: worker-group
+      REDIS_CONSUMER_NAME: worker-1
+      NODE_ENV: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - lokaly-network
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+
+volumes:
+  postgres-data:
+  redis-data:
+
+networks:
+  lokaly-network:
+    driver: bridge
+

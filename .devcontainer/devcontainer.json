@@ -1,0 +1,73 @@
+{
+  "name": "Lokaly API Development",
+  "dockerComposeFile": "../docker/docker-compose.yml",
+  "service": "public-api",
+  "workspaceFolder": "/workspace",
+  "shutdownAction": "stopCompose",
+  
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "oven.bun-vscode",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-typescript-next",
+        "bradlc.vscode-tailwindcss"
+      ],
+      "settings": {
+        "typescript.tsdk": "node_modules/typescript/lib",
+        "typescript.enablePromptUseWorkspaceTsdk": true,
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "files.watcherExclude": {
+          "**/node_modules/**": true,
+          "**/.git/**": true
+        }
+      }
+    }
+  },
+
+  "forwardPorts": [3000, 3001, 5432, 6379],
+  "portsAttributes": {
+    "3000": {
+      "label": "Public API",
+      "onAutoForward": "notify"
+    },
+    "3001": {
+      "label": "Admin API",
+      "onAutoForward": "notify"
+    },
+    "5432": {
+      "label": "PostgreSQL",
+      "onAutoForward": "silent"
+    },
+    "6379": {
+      "label": "Redis",
+      "onAutoForward": "silent"
+    }
+  },
+
+  "postCreateCommand": "bun install",
+  "postStartCommand": "bun install",
+
+  "remoteUser": "root",
+  "remoteEnv": {
+    "DATABASE_URL": "postgresql://lokaly:lokaly@postgres:5432/lokaly",
+    "REDIS_URL": "redis://redis:6379",
+    "JWT_SECRET": "public-api-secret-key-change-in-production",
+    "ADMIN_JWT_SECRET": "admin-api-secret-key-change-in-production",
+    "NODE_ENV": "development"
+  },
+
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached"
+  ],
+
+  "overrideCommand": false
+}
+

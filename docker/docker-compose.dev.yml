@@ -1,0 +1,27 @@
+version: '3.8'
+
+# Development override for docker-compose.yml
+# Use with: docker-compose -f docker/docker-compose.yml -f docker/docker-compose.dev.yml up
+
+services:
+  public-api:
+    volumes:
+      - ../backend:/app/backend:cached
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+
+  admin-api:
+    volumes:
+      - ../backend:/app/backend:cached
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+
+  worker:
+    volumes:
+      - ../backend:/app/backend:cached
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+
