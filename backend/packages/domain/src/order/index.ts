@@ -1,17 +1,25 @@
 /**
  * Order Domain Logic
- * 
+ *
  * Handles order creation, status transitions, and business rules.
  * Emits events instead of calling services directly.
  */
 
-import type { DbConnection, OrderRow, OrderItemRow } from "@lokaly/db";
+import type {
+  DbConnection,
+  Order,
+  NewOrder,
+  OrderItem,
+  NewOrderItem,
+} from '@lokaly/db';
 import type {
   OrderCreatedEvent,
   OrderStatusChangedEvent,
   OrderCancelledEvent,
   DomainEvent,
-} from "@lokaly/events";
+} from '@lokaly/events';
+import { eq, and, isNull } from 'drizzle-orm';
+import { orders, orderItems } from '@lokaly/db/schema';
 
 /**
  * Event Publisher Interface
@@ -22,39 +30,42 @@ export interface EventPublisher {
 }
 
 export type OrderStatus =
-  | "pending"
-  | "confirmed"
-  | "picking"
-  | "ready"
-  | "assigned"
-  | "picked_up"
-  | "in_transit"
-  | "delivered"
-  | "cancelled";
+  | 'pending'
+  | 'confirmed'
+  | 'picking'
+  | 'ready'
+  | 'assigned'
+  | 'picked_up'
+  | 'in_transit'
+  | 'delivered'
+  | 'cancelled';
 
 export type CreateOrderInput = {
-  customerId: string;
+  customerId: number;
+  customerName: string;
+  customerPhone?: string;
+  customerEmail?: string;
   items: Array<{
-    productId: string;
+    productId: number;
+    productVariantId?: number;
     quantity: number;
-    price: number;
+    unitPrice: number;
+    productName: string;
+    productSku?: string;
   }>;
+  deliveryAddressId?: number;
   deliveryAddress: string;
+  deliveryInstructions?: string;
+  subtotalAmount: number;
+  taxAmount?: number;
+  deliveryFee?: number;
+  discountAmount?: number;
+  paymentMethod?: string;
+  notes?: string;
 };
 
-export type Order = {
-  id: string;
-  customerId: string;
-  status: OrderStatus;
-  totalAmount: number;
-  deliveryAddress: string;
-  items: Array<{
-    productId: string;
-    quantity: number;
-    price: number;
-  }>;
-  createdAt: Date;
-  updatedAt: Date;
+export type OrderWithItems = Order & {
+  items: OrderItem[];
 };
 
 /**
@@ -74,83 +85,97 @@ export class OrderService {
    * - Set initial status to "pending"
    * - Emit order.created event
    */
-  async createOrder(input: CreateOrderInput): Promise<Order> {
-    const orderId = crypto.randomUUID();
-    const totalAmount = input.items.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0
-    );
+  async createOrder(input: CreateOrderInput): Promise<OrderWithItems> {
+    const totalAmount =
+      input.subtotalAmount +
+      (input.taxAmount || 0) +
+      (input.deliveryFee || 0) -
+      (input.discountAmount || 0);
 
     // Validate business rules
     if (input.items.length === 0) {
-      throw new Error("Order must have at least one item");
+      throw new Error('Order must have at least one item');
     }
 
     if (totalAmount <= 0) {
-      throw new Error("Order total must be greater than zero");
+      throw new Error('Order total must be greater than zero');
     }
 
     // Use transaction to ensure atomicity
-    const order = await this.db.transaction(async (tx: DbConnection) => {
+    const order = await this.db.drizzle.transaction(async (tx) => {
       // Insert order
-      await tx.query(
-        `INSERT INTO orders (id, customer_id, status, total_amount, delivery_address, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
-        [orderId, input.customerId, "pending", totalAmount, input.deliveryAddress]
-      );
+      const [newOrder] = await tx
+        .insert(orders)
+        .values({
+          customerId: input.customerId,
+          customerName: input.customerName,
+          customerPhone: input.customerPhone,
+          customerEmail: input.customerEmail,
+          deliveryAddressId: input.deliveryAddressId,
+          deliveryAddress: input.deliveryAddress,
+          deliveryInstructions: input.deliveryInstructions,
+          status: 'pending',
+          totalAmount: totalAmount.toString(),
+          subtotalAmount: input.subtotalAmount.toString(),
+          taxAmount: (input.taxAmount || 0).toString(),
+          deliveryFee: (input.deliveryFee || 0).toString(),
+          discountAmount: (input.discountAmount || 0).toString(),
+          paymentStatus: 'pending',
+          paymentMethod: input.paymentMethod,
+          notes: input.notes,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .returning();
 
-      // Insert order items
-      for (const item of input.items) {
-        const itemId = crypto.randomUUID();
-        await tx.query(
-          `INSERT INTO order_items (id, order_id, product_id, quantity, price, created_at)
-           VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
-          [itemId, orderId, item.productId, item.quantity, item.price]
-        );
+      if (!newOrder) {
+        throw new Error('Failed to create order');
       }
 
-      // Fetch created order
-      const [orderRow] = (await tx.query(
-        `SELECT * FROM orders WHERE id = ?`,
-        [orderId]
-      )) as OrderRow[];
+      // Insert order items
+      const itemsToInsert: NewOrderItem[] = input.items.map((item) => ({
+        orderId: newOrder.id,
+        productId: item.productId,
+        productVariantId: item.productVariantId,
+        productName: item.productName,
+        productSku: item.productSku,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice.toString(),
+        subtotal: (item.unitPrice * item.quantity).toString(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }));
 
-      const itemRows = (await tx.query(
-        `SELECT * FROM order_items WHERE order_id = ?`,
-        [orderId]
-      )) as OrderItemRow[];
+      const insertedItems = await tx
+        .insert(orderItems)
+        .values(itemsToInsert)
+        .returning();
 
       return {
-        id: orderRow.id,
-        customerId: orderRow.customer_id,
-        status: orderRow.status as OrderStatus,
-        totalAmount: Number(orderRow.total_amount),
-        deliveryAddress: orderRow.delivery_address,
-        items: itemRows.map((item: OrderItemRow) => ({
-          productId: item.product_id,
-          quantity: item.quantity,
-          price: Number(item.price),
-        })),
-        createdAt: orderRow.created_at,
-        updatedAt: orderRow.updated_at,
+        ...newOrder,
+        items: insertedItems,
       };
     });
 
     // Emit domain event (async, doesn't block transaction)
     const event: OrderCreatedEvent = {
-      type: "order.created",
+      type: 'order.created',
       payload: {
-        orderId: order.id,
-        customerId: order.customerId,
-        items: order.items,
-        totalAmount: order.totalAmount,
+        orderId: order.id.toString(),
+        customerId: order.customerId.toString(),
+        items: order.items.map((item) => ({
+          productId: item.productId.toString(),
+          quantity: item.quantity,
+          price: Number(item.unitPrice),
+        })),
+        totalAmount: Number(order.totalAmount),
         deliveryAddress: order.deliveryAddress,
       },
       metadata: {
         eventId: crypto.randomUUID(),
         timestamp: Date.now(),
-        source: "order-service",
-        correlationId: orderId,
+        source: 'order-service',
+        correlationId: order.id.toString(),
       },
     };
 
@@ -166,98 +191,129 @@ export class OrderService {
    * - Emit order.status_changed event
    */
   async updateOrderStatus(
-    orderId: string,
+    orderId: number,
     newStatus: OrderStatus,
-    changedBy?: string
-  ): Promise<Order> {
+    changedBy?: number
+  ): Promise<OrderWithItems> {
     const order = await this.getOrderById(orderId);
     if (!order) {
-      throw new Error("Order not found");
+      throw new Error('Order not found');
     }
 
     // Validate status transition (business rule)
     const validTransitions: Record<OrderStatus, OrderStatus[]> = {
-      pending: ["confirmed", "cancelled"],
-      confirmed: ["picking", "cancelled"],
-      picking: ["ready", "cancelled"],
-      ready: ["assigned", "cancelled"],
-      assigned: ["picked_up", "cancelled"],
-      picked_up: ["in_transit", "cancelled"],
-      in_transit: ["delivered", "cancelled"],
+      pending: ['confirmed', 'cancelled'],
+      confirmed: ['picking', 'cancelled'],
+      picking: ['ready', 'cancelled'],
+      ready: ['assigned', 'cancelled'],
+      assigned: ['picked_up', 'cancelled'],
+      picked_up: ['in_transit', 'cancelled'],
+      in_transit: ['delivered', 'cancelled'],
       delivered: [],
       cancelled: [],
     };
 
-    if (!validTransitions[order.status].includes(newStatus)) {
+    const currentStatus = order.status as OrderStatus;
+    if (!validTransitions[currentStatus].includes(newStatus)) {
       throw new Error(
-        `Invalid status transition from ${order.status} to ${newStatus}`
+        `Invalid status transition from ${currentStatus} to ${newStatus}`
       );
     }
 
     // Update in database
-    await this.db.query(
-      `UPDATE orders SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
-      [newStatus, orderId]
-    );
+    const [updatedOrder] = await this.db.drizzle
+      .update(orders)
+      .set({
+        status: newStatus,
+        updatedAt: new Date(),
+      })
+      .where(and(eq(orders.id, orderId), isNull(orders.deletedAt)))
+      .returning();
 
-    const updatedOrder = await this.getOrderById(orderId);
     if (!updatedOrder) {
-      throw new Error("Failed to fetch updated order");
+      throw new Error('Failed to update order');
     }
+
+    // Fetch items
+    const items = await this.db.drizzle
+      .select()
+      .from(orderItems)
+      .where(
+        and(eq(orderItems.orderId, orderId), isNull(orderItems.deletedAt))
+      );
+
+    const orderWithItems: OrderWithItems = {
+      ...updatedOrder,
+      items,
+    };
 
     // Emit event
     const event: OrderStatusChangedEvent = {
-      type: "order.status_changed",
+      type: 'order.status_changed',
       payload: {
-        orderId,
-        previousStatus: order.status,
+        orderId: orderId.toString(),
+        previousStatus: currentStatus,
         newStatus,
-        changedBy,
+        changedBy: changedBy?.toString(),
       },
       metadata: {
         eventId: crypto.randomUUID(),
         timestamp: Date.now(),
-        source: "order-service",
-        correlationId: orderId,
+        source: 'order-service',
+        correlationId: orderId.toString(),
       },
     };
 
     await this.eventPublisher.publish(event);
 
-    return updatedOrder;
+    return orderWithItems;
   }
 
   /**
    * Cancel an order
    */
-  async cancelOrder(orderId: string, reason: string, cancelledBy: string): Promise<void> {
+  async cancelOrder(
+    orderId: number,
+    reason: string,
+    cancelledBy: number
+  ): Promise<void> {
     const order = await this.getOrderById(orderId);
     if (!order) {
-      throw new Error("Order not found");
+      throw new Error('Order not found');
     }
 
-    if (order.status === "delivered") {
-      throw new Error("Cannot cancel a delivered order");
+    if (order.status === 'delivered') {
+      throw new Error('Cannot cancel a delivered order');
     }
 
-    if (order.status === "cancelled") {
+    if (order.status === 'cancelled') {
       return; // Idempotent
     }
 
-    await this.updateOrderStatus(orderId, "cancelled", cancelledBy);
+    // Update order with cancellation info
+    await this.db.drizzle
+      .update(orders)
+      .set({
+        status: 'cancelled',
+        cancelledAt: new Date(),
+        cancelledBy,
+        cancellationReason: reason,
+        updatedAt: new Date(),
+      })
+      .where(and(eq(orders.id, orderId), isNull(orders.deletedAt)));
 
     const event: OrderCancelledEvent = {
-      type: "order.cancelled",
+      type: 'order.cancelled',
       payload: {
-        orderId,
+        orderId: orderId.toString(),
         reason,
-        cancelledBy,
+        cancelledBy: cancelledBy.toString(),
       },
       metadata: {
         eventId: crypto.randomUUID(),
         timestamp: Date.now(),
-        source: "order-service",
-        correlationId: orderId,
+        source: 'order-service',
+        correlationId: orderId.toString(),
       },
     };
 
@@ -267,35 +323,27 @@ export class OrderService {
   /**
    * Get order by ID
    */
-  async getOrderById(orderId: string): Promise<Order | null> {
-    const [orderRow] = (await this.db.query(
-      `SELECT * FROM orders WHERE id = ?`,
-      [orderId]
-    )) as OrderRow[];
+  async getOrderById(orderId: number): Promise<OrderWithItems | null> {
+    const [order] = await this.db.drizzle
+      .select()
+      .from(orders)
+      .where(and(eq(orders.id, orderId), isNull(orders.deletedAt)))
+      .limit(1);
 
-    if (!orderRow) {
+    if (!order) {
       return null;
     }
 
-    const itemRows = (await this.db.query(
-      `SELECT * FROM order_items WHERE order_id = ?`,
-      [orderId]
-    )) as OrderItemRow[];
+    const items = await this.db.drizzle
+      .select()
+      .from(orderItems)
+      .where(
+        and(eq(orderItems.orderId, orderId), isNull(orderItems.deletedAt))
+      );
 
     return {
-      id: orderRow.id,
-      customerId: orderRow.customer_id,
-      status: orderRow.status as OrderStatus,
-      totalAmount: Number(orderRow.total_amount),
-      deliveryAddress: orderRow.delivery_address,
-      items: itemRows.map((item) => ({
-        productId: item.product_id,
-        quantity: item.quantity,
-        price: Number(item.price),
-      })),
-      createdAt: orderRow.created_at,
-      updatedAt: orderRow.updated_at,
+      ...order,
+      items,
     };
   }
 }
-

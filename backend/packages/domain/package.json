@@ -7,11 +7,28 @@
     ".": "./src/index.ts",
     "./order": "./src/order/index.ts",
     "./inventory": "./src/inventory/index.ts",
-    "./delivery": "./src/delivery/index.ts"
+    "./delivery": "./src/delivery/index.ts",
+    "./users": "./src/users/index.ts",
+    "./customers": "./src/customers/index.ts",
+    "./addresses": "./src/addresses/index.ts",
+    "./couriers": "./src/couriers/index.ts",
+    "./products": "./src/products/index.ts",
+    "./departments": "./src/departments/index.ts",
+    "./categories": "./src/categories/index.ts",
+    "./subcategories": "./src/subcategories/index.ts",
+    "./brands": "./src/brands/index.ts",
+    "./units": "./src/units/index.ts",
+    "./warehouses": "./src/warehouses/index.ts",
+    "./product-images": "./src/product-images/index.ts",
+    "./product-variants": "./src/product-variants/index.ts",
+    "./product-stock": "./src/product-stock/index.ts",
+    "./product-prices": "./src/product-prices/index.ts",
+    "./product-reviews": "./src/product-reviews/index.ts"
   },
   "dependencies": {
+    "@lokaly/cache": "workspace:*",
+    "@lokaly/db": "workspace:*",
     "@lokaly/events": "workspace:*",
-    "@lokaly/db": "workspace:*"
+    "drizzle-orm": "^0.45.1"
   }
 }
-
