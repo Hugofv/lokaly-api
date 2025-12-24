@@ -18,7 +18,14 @@ function createAuthGuard(jwtService: JwtService) {
     }
 
     const payload = await jwtService.verify(token);
+    // Token inválido ou expirado
     if (!payload) {
+      set.status = 401;
+      return { error: 'Unauthorized' };
+    }
+
+    // Não permitir uso de refresh token como Bearer
+    if (payload.tokenType && payload.tokenType !== 'access') {
       set.status = 401;
       return { error: 'Unauthorized' };
     }
@@ -43,7 +50,7 @@ function createAuthDerive(jwtService: JwtService) {
     }
 
     const payload = await jwtService.verify(token);
-    if (!payload) {
+    if (!payload || (payload.tokenType && payload.tokenType !== 'access')) {
       return {};
     }
 

@@ -5,7 +5,11 @@
 
 import { Elysia } from 'elysia';
 import type { UsersService } from '@lokaly/domain';
-import { jsonResponse, errorResponse } from '../../shared/responses';
+import {
+  jsonResponse,
+  errorResponse,
+  paginatedResponse,
+} from '../../shared/responses';
 import { userValidators } from './validators';
 
 export const usersController = (usersService: UsersService) =>
@@ -14,9 +18,12 @@ export const usersController = (usersService: UsersService) =>
       '/',
       async ({ query }) => {
         try {
+          const limit = query.limit || 50;
+          const offset = query.offset || 0;
+
           const users = await usersService.findMany({
-            limit: query.limit || 50,
-            offset: query.offset || 0,
+            limit,
+            offset,
             orderBy: query.orderBy,
             orderDirection: query.orderDirection || 'desc',
             filters: {
@@ -32,15 +39,7 @@ export const usersController = (usersService: UsersService) =>
             ...(query.department && { department: query.department }),
           });
 
-          return jsonResponse({
-            data: users,
-            pagination: {
-              limit: query.limit || 50,
-              offset: query.offset || 0,
-              total,
-              hasMore: (query.offset || 0) + (query.limit || 50) < total,
-            },
-          });
+          return paginatedResponse(users, total, limit, offset);
         } catch (error) {
           return errorResponse(
             error instanceof Error ? error.message : 'Unknown error',

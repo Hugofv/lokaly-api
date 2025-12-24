@@ -1,6 +1,5 @@
 /**
- * Shared Response Helpers
- * Helper functions for HTTP responses
+ * Shared Response Helpers (public API)
  */
 
 export function jsonResponse<T>(data: T, status: number = 200): Response {
@@ -20,10 +19,6 @@ export function errorResponse(
     response.details = details;
   }
   return jsonResponse(response, status);
-}
-
-export function successResponse<T>(data: T, status: number = 200): Response {
-  return jsonResponse({ success: true, data }, status);
 }
 
 type PaginatedMeta = {

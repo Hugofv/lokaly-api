@@ -5,7 +5,11 @@
 
 import { Elysia } from 'elysia';
 import type { ProductsService } from '@lokaly/domain';
-import { jsonResponse, errorResponse } from '../../shared/responses';
+import {
+  jsonResponse,
+  errorResponse,
+  paginatedResponse,
+} from '../../shared/responses';
 import { productValidators } from './validators';
 
 export const productsController = (productsService: ProductsService) =>
@@ -14,9 +18,12 @@ export const productsController = (productsService: ProductsService) =>
       '/',
       async ({ query }) => {
         try {
+          const limit = query.limit || 50;
+          const offset = query.offset || 0;
+
           const products = await productsService.findMany({
-            limit: query.limit || 50,
-            offset: query.offset || 0,
+            limit,
+            offset,
             orderBy: query.orderBy,
             orderDirection: query.orderDirection || 'desc',
             filters: {
@@ -48,15 +55,7 @@ export const productsController = (productsService: ProductsService) =>
             }),
           });
 
-          return jsonResponse({
-            data: products,
-            pagination: {
-              limit: query.limit || 50,
-              offset: query.offset || 0,
-              total,
-              hasMore: (query.offset || 0) + (query.limit || 50) < total,
-            },
-          });
+          return paginatedResponse(products, total, limit, offset);
         } catch (error) {
           return errorResponse(
             error instanceof Error ? error.message : 'Unknown error',
@@ -139,7 +138,18 @@ export const productsController = (productsService: ProductsService) =>
       '/:id',
       async ({ params, body }) => {
         try {
-          const product = await productsService.update(params.id, body);
+          const product = await productsService.update(params.id, {
+            ...(body as any),
+            // Normalizar tipos numéricos que são strings no schema
+            weight:
+              typeof (body as any).weight === 'number'
+                ? (body as any).weight.toString()
+                : (body as any).weight,
+            basePrice:
+              typeof (body as any).basePrice === 'number'
+                ? (body as any).basePrice.toString()
+                : (body as any).basePrice,
+          } as any);
           if (!product) {
             return errorResponse('Product not found', 404);
           }

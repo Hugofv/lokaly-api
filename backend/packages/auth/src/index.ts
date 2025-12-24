@@ -1,9 +1,9 @@
 /**
  * Authentication Package
- * 
+ *
  * Shared authentication and authorization logic.
  * Supports JWT for public API and RBAC for admin API.
- * 
+ *
  * Architecture Decision:
  * - Framework-agnostic auth logic
  * - JWT tokens for public API (users & couriers)
@@ -11,60 +11,97 @@
  * - Token validation separated from framework concerns
  */
 
-export type UserRole = "customer" | "courier" | "admin" | "super_admin";
+export type UserRole = 'customer' | 'courier' | 'admin' | 'super_admin';
 
 export type JwtPayload = {
   userId: string;
   role: UserRole;
   email?: string;
+  /**
+   * Tipo de token para diferenciação de uso
+   * - access: usado em Authorization: Bearer
+   * - refresh: usado apenas para obter novo access
+   */
+  tokenType?: 'access' | 'refresh';
   iat?: number;
   exp?: number;
 };
 
 /**
  * JWT Token Management
+ *
+ * Implementação real usando Bun.jwt:
+ * - Assina com chave secreta (HS256)
+ * - Inclui iat/exp no payload
+ * - Valida assinatura e expiração no verify
  */
 export class JwtService {
   private secret: string;
+  private defaultTtlSeconds: number;
 
-  constructor(secret: string) {
+  constructor(secret: string, defaultTtlSeconds: number = 3600) {
     this.secret = secret;
+    this.defaultTtlSeconds = defaultTtlSeconds;
   }
 
   /**
    * Sign a JWT token
+   *
+   * @param payload - Dados de domínio (sem iat/exp)
+   * @param ttlSeconds - Tempo de expiração em segundos (override do default)
    */
-  async sign(payload: Omit<JwtPayload, "iat" | "exp">): Promise<string> {
+  async sign(
+    payload: Omit<JwtPayload, 'iat' | 'exp'>,
+    ttlSeconds?: number
+  ): Promise<string> {
     const now = Math.floor(Date.now() / 1000);
+    const exp = now + (ttlSeconds ?? this.defaultTtlSeconds);
+
     const tokenPayload: JwtPayload = {
       ...payload,
       iat: now,
-      exp: now + 3600, // 1 hour expiry
+      exp,
     };
 
-    // Using Bun's built-in JWT support
-    // In practice: return await Bun.jwt.sign(tokenPayload, this.secret);
-    // For now, returning a placeholder
-    return Buffer.from(JSON.stringify(tokenPayload)).toString("base64url");
+    // Assinatura com Bun JWT (HS256 + chave secreta)
+    // Usamos any para evitar depender dos tipos de Bun neste pacote
+    const bunAny: any = Bun as any;
+    const token = await bunAny.jwt.sign(
+      {
+        header: {
+          alg: 'HS256',
+          typ: 'JWT',
+        },
+        payload: tokenPayload,
+      },
+      this.secret
+    );
+
+    return token as string;
   }
 
   /**
    * Verify and decode a JWT token
+   *
+   * Retorna null se:
+   * - Assinatura inválida
+   * - Token expirado
+   * - Payload malformado
    */
   async verify(token: string): Promise<JwtPayload | null> {
     try {
-      // Using Bun's built-in JWT support
-      // In practice: return await Bun.jwt.verify(token, this.secret);
-      const decoded = JSON.parse(
-        Buffer.from(token, "base64url").toString("utf-8")
-      ) as JwtPayload;
+      const bunAny: any = Bun as any;
+      const result = (await bunAny.jwt.verify(
+        token,
+        this.secret
+      )) as JwtPayload;
 
-      // Check expiry
-      if (decoded.exp && decoded.exp < Math.floor(Date.now() / 1000)) {
+      // Verificação extra de expiração (além da do Bun)
+      if (result.exp && result.exp < Math.floor(Date.now() / 1000)) {
         return null;
       }
 
-      return decoded;
+      return result;
     } catch {
       return null;
     }
@@ -95,23 +132,21 @@ export class RBAC {
 
     const userLevel = roleHierarchy[userRole] || 0;
 
-    return requiredRoles.some(
-      (role) => userLevel >= roleHierarchy[role]
-    );
+    return requiredRoles.some((role) => userLevel >= roleHierarchy[role]);
   }
 
   /**
    * Check if user can access admin endpoints
    */
   static isAdmin(userRole: UserRole): boolean {
-    return userRole === "admin" || userRole === "super_admin";
+    return userRole === 'admin' || userRole === 'super_admin';
   }
 
   /**
    * Check if user can access public endpoints
    */
   static isPublicUser(userRole: UserRole): boolean {
-    return userRole === "customer" || userRole === "courier";
+    return userRole === 'customer' || userRole === 'courier';
   }
 }
 
@@ -120,7 +155,6 @@ export class RBAC {
  */
 export function extractToken(authHeader: string | null): string | null {
   if (!authHeader) return null;
-  if (!authHeader.startsWith("Bearer ")) return null;
+  if (!authHeader.startsWith('Bearer ')) return null;
   return authHeader.slice(7);
 }
-

@@ -16,6 +16,7 @@ import {
   ProductsService,
 } from '@lokaly/domain';
 import { authPlugin } from './shared/middleware/auth.plugin';
+import { authController } from './modules/auth/controller';
 import { usersController } from './modules/users/controller';
 import { customersController } from './modules/customers/controller';
 import { addressesController } from './modules/customers/addresses/controller';
@@ -38,6 +39,11 @@ export function createApp(
   // Build app
   const app = new Elysia()
     .get('/health', () => ({ status: 'ok', service: 'admin-api' }))
+    // Public admin auth endpoints (no auth plugin - login/refresh)
+    .group('/api/admin/auth', (app) =>
+      app.use(authController(usersService, jwtService))
+    )
+    // Protected admin endpoints (require auth plugin)
     .group('/api/admin', (app) =>
       app
         .use(authPlugin(jwtService))

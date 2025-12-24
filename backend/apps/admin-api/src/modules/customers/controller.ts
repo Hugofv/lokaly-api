@@ -5,7 +5,11 @@
 
 import { Elysia } from 'elysia';
 import type { CustomersService, AddressesService } from '@lokaly/domain';
-import { jsonResponse, errorResponse } from '../../shared/responses';
+import {
+  jsonResponse,
+  errorResponse,
+  paginatedResponse,
+} from '../../shared/responses';
 import { customerValidators, addressValidators } from './validators';
 
 export const customersController = (
@@ -17,9 +21,12 @@ export const customersController = (
       '/',
       async ({ query }) => {
         try {
+          const limit = query.limit || 50;
+          const offset = query.offset || 0;
+
           const customers = await customersService.findMany({
-            limit: query.limit || 50,
-            offset: query.offset || 0,
+            limit,
+            offset,
             orderBy: query.orderBy,
             orderDirection: query.orderDirection || 'desc',
             filters: {
@@ -33,15 +40,7 @@ export const customersController = (
             ...(query.loyaltyTier && { loyaltyTier: query.loyaltyTier }),
           });
 
-          return jsonResponse({
-            data: customers,
-            pagination: {
-              limit: query.limit || 50,
-              offset: query.offset || 0,
-              total,
-              hasMore: (query.offset || 0) + (query.limit || 50) < total,
-            },
-          });
+          return paginatedResponse(customers, total, limit, offset);
         } catch (error) {
           return errorResponse(
             error instanceof Error ? error.message : 'Unknown error',
