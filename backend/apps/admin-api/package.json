@@ -8,11 +8,12 @@
     "start": "bun src/index.ts"
   },
   "dependencies": {
+    "@lokaly/auth": "workspace:*",
+    "@lokaly/cache": "workspace:*",
+    "@lokaly/db": "workspace:*",
     "@lokaly/domain": "workspace:*",
     "@lokaly/events": "workspace:*",
-    "@lokaly/db": "workspace:*",
-    "@lokaly/auth": "workspace:*",
-    "@lokaly/utils": "workspace:*"
+    "@lokaly/utils": "workspace:*",
+    "elysia": "^1.4.19"
   }
 }
-
