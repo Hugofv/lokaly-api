@@ -47,7 +47,7 @@
     }
   },
 
-  "postCreateCommand": "bun install",
+  "postCreateCommand": "chmod +x .devcontainer/setup-ssh.sh && .devcontainer/setup-ssh.sh && bun install",
   "postStartCommand": "bun install",
 
   "remoteUser": "root",

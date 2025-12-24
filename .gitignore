@@ -38,5 +38,9 @@ tmp/
 temp/
 *.tmp
 
+# SSH Keys (não commitar chaves privadas)
+.devcontainer/ssh-keys/id_*
+!.devcontainer/ssh-keys/id_*.pub.example
+
 # Docker
 .docker/

@@ -49,6 +49,8 @@ services:
     volumes:
       - ..:/workspace:cached
       - /workspace/node_modules
+      # Compartilhar git config do host (opcional, se existir)
+      - ~/.gitconfig:/home/root/.gitconfig:ro
     working_dir: /workspace
     environment:
       DATABASE_URL: postgresql://lokaly:lokaly@postgres:5432/lokaly
