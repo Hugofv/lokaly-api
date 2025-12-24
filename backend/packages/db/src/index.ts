@@ -344,3 +344,6 @@ export type DeliveryAssignmentRow = {
 
 // Export schema for direct use
 export { schema };
+
+// Export seed function
+export { seed } from './seed';
